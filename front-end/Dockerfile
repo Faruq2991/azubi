@@ -1,15 +1,24 @@
-# Use official Node.js image as the build environment
+FROM node:18.20.3-alpine AS deps
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY package.json package-lock.json* ./
+RUN npm ci
+
 FROM node:18.20.3-alpine AS builder
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install --frozen-lockfile || npm install
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# Use a lightweight image to serve the app
 FROM node:18.20.3-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app .
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
