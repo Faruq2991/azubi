@@ -1,0 +1,73 @@
+services:
+  frontend:
+    image: ${DOCKERHUB_NAMESPACE}/azubi-frontend:latest
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_API_HOST: http://backend-nginx
+      SECRET_COOKIE_PASSWORD: ${SECRET_COOKIE_PASSWORD}
+      NODE_ENV: production
+    depends_on:
+      - backend-nginx
+    networks:
+      - app-network
+
+  backend-php:
+    image: ${DOCKERHUB_NAMESPACE}/azubi-backend-php:latest
+    container_name: backend-php
+    volumes:
+      - ./back-end:/var/www/html
+    env_file:
+      - ./back-end/.env
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      app-network:
+        aliases:
+          - php
+
+  backend-nginx:
+    image: ${DOCKERHUB_NAMESPACE}/azubi-backend-nginx:latest
+    container_name: backend-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./back-end:/var/www/html
+    depends_on:
+      - backend-php
+      - mysql
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db-data:
+
+

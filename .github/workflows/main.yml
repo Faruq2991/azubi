@@ -17,25 +17,27 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set repo name to lowercase
-        id: vars
+      - name: Prepare Docker Hub namespace
+        id: dh
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
-          echo "repo=${REPO_LOWER}" >> $GITHUB_OUTPUT
+          USER_LOWER=$(echo "${DOCKERHUB_USERNAME}" | tr '[:upper:]' '[:lower:]')
+          echo "ns=${USER_LOWER}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: ./front-end
           push: true
-          tags: ghcr.io/${{ steps.vars.outputs.repo }}/frontend:latest
+          tags: docker.io/${{ steps.dh.outputs.ns }}/azubi-frontend:latest
 
   build_and_push_backend:
     runs-on: ubuntu-latest
@@ -43,18 +45,20 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      - name: Set repo name to lowercase
-        id: vars
+      - name: Prepare Docker Hub namespace
+        id: dh
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
-          echo "repo=${REPO_LOWER}" >> $GITHUB_OUTPUT
+          USER_LOWER=$(echo "${DOCKERHUB_USERNAME}" | tr '[:upper:]' '[:lower:]')
+          echo "ns=${USER_LOWER}" >> $GITHUB_OUTPUT
 
 
       - name: Build and push backend-php image
@@ -63,7 +67,7 @@ jobs:
           context: ./back-end
           file: ./back-end/dockerfiles/php.dockerfile
           push: true
-          tags: ghcr.io/${{ steps.vars.outputs.repo }}/backend-php:latest
+          tags: docker.io/${{ steps.dh.outputs.ns }}/azubi-backend-php:latest
           build-args: |
             UID=1001
             GID=1001
@@ -75,8 +79,61 @@ jobs:
           context: ./back-end
           file: ./back-end/dockerfiles/nginx.dockerfile
           push: true
-          tags: ghcr.io/${{ steps.vars.outputs.repo }}/backend-nginx:latest
+          tags: docker.io/${{ steps.dh.outputs.ns }}/azubi-backend-nginx:latest
           build-args: |
             UID=1001
             GID=1001
             USER=runner
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build_and_push_frontend, build_and_push_backend]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Prepare Docker Hub namespace
+        id: dh
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          USER_LOWER=$(echo "${DOCKERHUB_USERNAME}" | tr '[:upper:]' '[:lower:]')
+          echo "ns=${USER_LOWER}" >> $GITHUB_OUTPUT
+
+      - name: Copy deployment files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: |
+            docker-compose.deploy.yml
+            back-end/.env
+          target: ${{ secrets.DEPLOY_PATH }}
+
+      - name: Run deploy on server
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOCKERHUB_NAMESPACE: ${{ steps.dh.outputs.ns }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SECRET_COOKIE_PASSWORD: ${{ secrets.SECRET_COOKIE_PASSWORD }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            echo DOCKERHUB_NAMESPACE=${DOCKERHUB_NAMESPACE} > .env.deploy
+            echo DB_DATABASE=${DB_DATABASE} >> .env.deploy
+            echo DB_USERNAME=${DB_USERNAME} >> .env.deploy
+            echo DB_PASSWORD=${DB_PASSWORD} >> .env.deploy
+            echo SECRET_COOKIE_PASSWORD=${SECRET_COOKIE_PASSWORD} >> .env.deploy
+            docker login docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            docker compose --env-file .env.deploy -f docker-compose.deploy.yml pull
+            docker compose --env-file .env.deploy -f docker-compose.deploy.yml up -d
+            docker compose --env-file .env.deploy -f docker-compose.deploy.yml exec -T backend-php php artisan key:generate || true
+            docker compose --env-file .env.deploy -f docker-compose.deploy.yml exec -T backend-php php artisan migrate --force --seed
