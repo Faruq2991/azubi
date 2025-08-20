@@ -1,6 +1,10 @@
 
 name: Build and Push Docker Images
 
+permissions:
+  contents: read
+  packages: write
+
 on:
   push:
     branches:
@@ -21,15 +25,17 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set repo name to lowercase
-        id: string
-        run: echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+        id: vars
+        run: |
+          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          echo "repo=${REPO_LOWER}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: ./front-end
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
+          tags: ghcr.io/${{ steps.vars.outputs.repo }}/frontend:latest
 
   build_and_push_backend:
     runs-on: ubuntu-latest
@@ -45,8 +51,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Set repo name to lowercase
-        id: string
-        run: echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+        id: vars
+        run: |
+          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          echo "repo=${REPO_LOWER}" >> $GITHUB_OUTPUT
 
 
       - name: Build and push backend-php image
@@ -55,7 +63,7 @@ jobs:
           context: ./back-end
           file: ./back-end/dockerfiles/php.dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/backend-php:latest
+          tags: ghcr.io/${{ steps.vars.outputs.repo }}/backend-php:latest
 
       - name: Build and push backend-nginx image
         uses: docker/build-push-action@v3
@@ -63,4 +71,4 @@ jobs:
           context: ./back-end
           file: ./back-end/dockerfiles/nginx.dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/backend-nginx:latest
+          tags: ghcr.io/${{ steps.vars.outputs.repo }}/backend-nginx:latest
