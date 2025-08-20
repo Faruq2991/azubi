@@ -108,6 +108,81 @@ Notes:
 - The Docker image uses the Next.js standalone output (`.next/standalone`) and runs `node server.js`.
 - Ensure the backend is reachable from the container. On Linux, replace `host.docker.internal` with your host IP if needed.
 
+## Docker Compose (Frontend + Backend)
+
+Use Docker Compose to run the full stack: Nginx + PHP-FPM (Laravel), MySQL, and the Next.js frontend.
+
+### 1) Configure backend environment
+Create `back-end/.env` (or update existing) with DB settings that match `docker-compose.yml`:
+
+```
+APP_NAME=CLM
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+LOG_CHANNEL=stack
+
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=clm
+DB_USERNAME=clm_user
+DB_PASSWORD=clm_user
+```
+
+### 2) Bring services up
+```bash
+docker compose up -d --build
+```
+
+Services:
+- Frontend: `http://localhost:3000` (container `frontend`)
+- Backend API: `http://localhost:8000` (containers `backend-nginx` → `backend-php`)
+- MySQL: exposed on `localhost:3306` (container `mysql`)
+
+The frontend in Compose uses these env vars (see `docker-compose.yml`):
+- `BACKEND_API_HOST=http://backend-nginx` (internal service URL)
+- `SECRET_COOKIE_PASSWORD=a-very-secure-secret-for-cookie-encryption`
+
+### 3) Initialize Laravel
+Run the following once after containers start (or when the DB is reset):
+```bash
+docker compose exec backend-php php artisan key:generate
+docker compose exec backend-php php artisan migrate --seed
+```
+
+If you change `.env`, clear config cache:
+```bash
+docker compose exec backend-php php artisan config:clear
+```
+
+### 4) Default login credentials
+The database seeder creates a default admin user (see `back-end/database/seeders/UserTableSeeder.php`):
+
+- Username: `admin`
+- Password: `admin`
+- Email: `admin@clms.com` (login uses username, not email)
+
+### 5) Useful commands
+- View logs:
+  ```bash
+  docker compose logs -f --tail=200 backend-nginx backend-php mysql frontend
+  ```
+- Stop services:
+  ```bash
+  docker compose down
+  ```
+- Stop and remove volumes (reset DB data):
+  ```bash
+  docker compose down -v
+  ```
+
+### 6) Troubleshooting
+- Access denied for DB user: ensure `back-end/.env` matches `DB_*` values in `docker-compose.yml` (database `clm`, user `clm_user`, password `clm_user`). If MySQL was initialized with different creds, run `docker compose down -v` to reset the volume and start again.
+- Frontend cannot reach backend: the container uses `BACKEND_API_HOST=http://backend-nginx`. From the browser, use `http://localhost:3000` which talks to `http://localhost:8000` through the network.
+
 ## Useful scripts
 
 ### Backend
