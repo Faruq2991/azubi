@@ -22,7 +22,7 @@ jobs:
 
       - name: Set repo name to lowercase
         id: string
-        run: echo "repo=${{ github.repository,, }}" >> $GITHUB_OUTPUT
+        run: echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
@@ -46,7 +46,7 @@ jobs:
       
       - name: Set repo name to lowercase
         id: string
-        run: echo "repo=${{ github.repository,, }}" >> $GITHUB_OUTPUT
+        run: echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
 
 
       - name: Build and push backend-php image
