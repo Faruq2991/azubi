@@ -7,7 +7,10 @@ services:
     ports:
       - "3000:3000"
     environment:
+      # Server-to-server (Next API routes) can still use service DNS
       BACKEND_API_HOST: http://backend-nginx
+      # Browser must use a public hostname (localhost in dev)
+      NEXT_PUBLIC_BACKEND_API_HOST: http://localhost:8000
       SECRET_COOKIE_PASSWORD: a-very-secure-secret-for-cookie-encryption
       NODE_ENV: production
     depends_on:

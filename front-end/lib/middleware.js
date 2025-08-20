@@ -16,8 +16,9 @@ export default async function auth({req, res}) {
     let configBundle = {
         user: req.session.get('user'),
         apiToken: req.session.get('api_token'),
-        backendUrl: process.env.BACKEND_API_HOST + "/api",
-        hostUrl: process.env.BACKEND_API_HOST,
+        // Use public URL for client-side requests
+        backendUrl: process.env.NEXT_PUBLIC_BACKEND_API_HOST + "/api",
+        hostUrl: process.env.NEXT_PUBLIC_BACKEND_API_HOST,
         authHeader: {"Authorization": "Bearer " + req.session.get('api_token')}
     }
 
@@ -46,7 +47,8 @@ export async function unSecureAuth({req, res}) {
     let configBundle = {
         user: req.session.get('user'),
         apiToken: req.session.get('api_token'),
-        backendUrl: process.env.BACKEND_API_HOST + "/api",
+        // Use public URL for client-side requests
+        backendUrl: process.env.NEXT_PUBLIC_BACKEND_API_HOST + "/api",
         authHeader: {"Authorization": "Bearer " + req.session.get('api_token')}
     }
     return {
@@ -75,7 +77,7 @@ export async function authGuard({req, res}) {
 
     return {
         props: {
-            url: process.env.BACKEND_API_HOST
+            url: process.env.NEXT_PUBLIC_BACKEND_API_HOST
         },
     }
 
