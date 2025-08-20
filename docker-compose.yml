@@ -1,0 +1,78 @@
+services:
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_API_HOST: http://backend-nginx
+      SECRET_COOKIE_PASSWORD: ${SECRET_COOKIE_PASSWORD:-change-me-please-32-chars-min}
+      NODE_ENV: production
+    depends_on:
+      - backend-nginx
+    networks:
+      - app-network
+
+  backend-php:
+    build:
+      context: ./back-end
+      dockerfile: dockerfiles/php.dockerfile
+      args:
+        UID: 1000
+        GID: 1000
+        USER: faruq
+    container_name: backend-php
+    volumes:
+      - ./back-end:/var/www/html
+    env_file:
+      - ./back-end/.env
+    depends_on:
+      - mysql
+    networks:
+      app-network:
+        aliases:
+          - php
+
+  backend-nginx:
+    build:
+      context: ./back-end
+      dockerfile: dockerfiles/nginx.dockerfile
+      args:
+        UID: 1000
+        GID: 1000
+        USER: faruq
+    container_name: backend-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./back-end:/var/www/html
+    depends_on:
+      - backend-php
+      - mysql
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: clm
+      MYSQL_ROOT_PASSWORD: clm_user
+      MYSQL_PASSWORD: clm_user
+      MYSQL_USER: clm_user
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db-data:
