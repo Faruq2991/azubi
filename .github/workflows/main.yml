@@ -64,6 +64,10 @@ jobs:
           file: ./back-end/dockerfiles/php.dockerfile
           push: true
           tags: ghcr.io/${{ steps.vars.outputs.repo }}/backend-php:latest
+          build-args: |
+            UID=1001
+            GID=1001
+            USER=runner
 
       - name: Build and push backend-nginx image
         uses: docker/build-push-action@v3
@@ -72,3 +76,7 @@ jobs:
           file: ./back-end/dockerfiles/nginx.dockerfile
           push: true
           tags: ghcr.io/${{ steps.vars.outputs.repo }}/backend-nginx:latest
+          build-args: |
+            UID=1001
+            GID=1001
+            USER=runner
