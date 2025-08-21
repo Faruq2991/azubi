@@ -95,7 +95,7 @@ The frontend is prepared for containerized production using Next.js standalone o
 
 Build and run:
 ```bash
-docker build -t clm-web:latest -f front-end/Dockerfile front-end
+docker build -t clm-web:latest .
 docker run --rm -p 3000:3000 --name clm-web \
   -e BACKEND_API_HOST=http://host.docker.internal:8000 \
   -e SECRET_COOKIE_PASSWORD=change-me-please-32-chars-min \
