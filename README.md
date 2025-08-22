@@ -206,10 +206,6 @@ Common endpoints:
   - `PATCH /api/users/{user}`
   - `GET/POST/DELETE /api/admin/users` (resource)
 
-## Troubleshooting
-- Frontend cannot reach backend: verify `BACKEND_API_HOST` and CORS settings on the backend (`APP_URL`, `CORS_ALLOWED_ORIGINS`).
-- Session errors: ensure `SECRET_COOKIE_PASSWORD` is set and long enough (32+ characters).
-- DB connection errors: confirm DB service is running and `back-end/.env` values match your local DB.
 
 ## License
 Proprietary – internal use.
