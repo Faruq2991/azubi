@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.1] - 2025-08-24
+
+### Added
+- Add user authentication module (a1b2c3d4)
+- Introduce two-factor authentication (d4e5f6a7)
+
+### Changed
+- Update API documentation (c3d4e5f6)
+
+### Fixed
+- Resolve crash on login (b2c3d4e5)
+- Correct misaligned settings button (e5f6a7b8)
+
+### Removed
+- Drop legacy support for IE9 (b8c9d0e1)
+
+### Security
+- Patch XSS vulnerability in comment section (a7b8c9d0)
+
+---
+
+
 ## [v1.0.1] - 2025-08-23
 
 ## Added
