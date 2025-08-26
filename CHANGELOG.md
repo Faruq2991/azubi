@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.2] - 2025-08-26
+
+## Added
+- Introduce user authentication feature for improved security (a1b2c3d4)
+- Add new reporting dashboard for real-time analytics (b2c3d4e5)
+
+## Changed
+- Update navigation menu for better usability on mobile devices (c3d4e5f6)
+
+## Fixed
+- Correct error in payment processing that affected transaction reliability (d4e5f6a7)
+- Fix broken image links on the homepage for a consistent visual experience (e5f6a7b8)
+
+## Removed
+- Remove deprecated API endpoints that are no longer supported (f6a7b8c9)
+
+## Security
+- Enhance encryption for user data transmission to meet updated compliance standards (a7b8c9d0)
+
+---
+
+
 ## [v1.0.1] - 2025-08-24
 
 ### Added
