@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## CLM System Monorepo
 
 This repository contains the CLM backend API (Laravel 11, PHP 8.2) and the CLM web frontend (Next.js 15, React 18).
@@ -209,3 +210,6 @@ Common endpoints:
 
 ## License
 Proprietary – internal use.
+=======
+# azubi
+>>>>>>> 800db694 (Initial commit)

@@ -1,0 +1,2 @@
+terraform/kubectl filter=lfs diff=lfs merge=lfs -text
+terraform/.terraform/providers/**/*.x5 filter=lfs diff=lfs merge=lfs -text
