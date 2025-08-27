@@ -15,8 +15,7 @@ export default function UsersIndex({users}) {
 
     useEffect(() => {
         fetchData();
-
-
+        console.log(data);
     }, []);
 
 
@@ -57,7 +56,7 @@ export default function UsersIndex({users}) {
 
             if (response.status === 200) {
                 // filter out job-seeker role
-                let data = response.data.data;
+                let data = response.data.data.filter(item => item.role?.name !== 'job-seeker');
 
                 setData(data);
             }
@@ -91,7 +90,7 @@ export default function UsersIndex({users}) {
                                 <div onClick={() => setActiveRecord(item)} key={index}
                                      className={`list-group-item ${activeRecord?.id === item.id ? 'active' : ''}`}>
                                     <div className="flex justify-between">
-                                        <div>{item.name}</div>
+                                    <div className="text-success-600">{item.name}</div>
                                         {activeRecord?.id === item.id && <div>
                                             <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24}
                                                  viewBox="0 0 24 24" fill="none" stroke="currentColor"

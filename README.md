@@ -210,6 +210,8 @@ Common endpoints:
 
 ## License
 Proprietary – internal use.
-=======
-# azubi
->>>>>>> 800db694 (Initial commit)
+
+# Debug
+- Automated Migration/Seeding
+- Separate build pipeline
+>>>>>>> 457d4ed8 (feat: separated the pipeline.)

@@ -1,0 +1,92 @@
+
+
+resource "kubernetes_secret" "mysql_secret" {
+  metadata {
+    name      = "mysql-secret"
+    namespace = kubernetes_namespace.azubi_ns.metadata[0].name
+  }
+  data = {
+    "mysql-root-password" = base64encode("clm_user")
+    "mysql-password"      = base64encode("clm_user")
+    "mysql-user"          = base64encode("clm_user")
+    "mysql-database"      = base64encode("clm")
+  }
+}
+
+resource "kubernetes_persistent_volume_claim" "mysql_pvc" {
+  metadata {
+    name      = "mysql-pv-claim"
+    namespace = kubernetes_namespace.azubi_ns.metadata[0].name
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "1Gi"
+      }
+    }
+  }
+}
+
+resource "kubernetes_deployment" "mysql_deployment" {
+  metadata {
+    name      = "mysql"
+    namespace = kubernetes_namespace.azubi_ns.metadata[0].name
+  }
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = "mysql"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "mysql"
+        }
+      }
+      spec {
+        container {
+          image = "mysql:8.0"
+          name  = "mysql"
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.mysql_secret.metadata[0].name
+            }
+          }
+          port {
+            container_port = 3306
+          }
+          volume_mount {
+            name      = "mysql-persistent-storage"
+            mount_path = "/var/lib/mysql"
+          }
+        }
+        volume {
+          name = "mysql-persistent-storage"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.mysql_pvc.metadata[0].name
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "mysql_service" {
+  metadata {
+    name      = "mysql"
+    namespace = kubernetes_namespace.azubi_ns.metadata[0].name
+  }
+  spec {
+    selector = {
+      app = "mysql"
+    }
+    port {
+      port        = 3306
+      target_port = 3306
+    }
+  }
+}
+
