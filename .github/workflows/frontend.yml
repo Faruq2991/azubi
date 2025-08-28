@@ -1,15 +1,49 @@
-name: Build and Push Frontend Docker Image
+name: Frontend CI
 
 on:
   push:
     branches:
-      - main
+      - '**'
+    paths:
+      - 'front-end/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
     paths:
       - 'front-end/**'
       - '.github/workflows/frontend.yml'
 
 jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front-end
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20' # Specify your Node.js version
+          cache: 'npm'
+          cache-dependency-path: front-end/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Linter
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Audit Security Vulnerabilities
+        run: npm audit
+
   build_and_push_frontend:
+    needs: quality-checks
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## CLM System Monorepo
 
 This repository contains the CLM backend API (Laravel 11, PHP 8.2) and the CLM web frontend (Next.js 15, React 18).
@@ -56,7 +55,7 @@ Minimal configuration for PostgreSQL (default):
 ```
 APP_NAME=CLM
 APP_ENV=local
-APP_KEY=base64:...            # php artisan key:generate sets this
+APP_KEY=base64:...
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
@@ -207,11 +206,40 @@ Common endpoints:
   - `PATCH /api/users/{user}`
   - `GET/POST/DELETE /api/admin/users` (resource)
 
+## CI/CD Pipeline
+
+This project is equipped with a robust CI/CD pipeline using GitHub Actions to ensure code quality, security, and automated deployments. The workflows are defined in the `.github/workflows/` directory.
+
+### Key Features
+
+- **Continuous Integration:** Every `push` and `pull_request` to any branch automatically triggers the CI pipeline.
+- **Automated Testing & Quality Checks:** The pipeline runs a series of checks to validate code before it can be merged.
+- **Continuous Delivery:** On a successful push to the `main` branch, the pipeline builds and pushes updated Docker images to Docker Hub.
+
+### Workflow Details
+
+#### Backend (`backend.yml`)
+
+1.  **Test Job:**
+    *   Sets up the PHP environment.
+    *   Installs Composer dependencies.
+    *   Runs the PHPUnit test suite (`php artisan test`).
+    *   Performs a security audit on dependencies (`composer audit`).
+2.  **Build & Push Job:**
+    *   This job runs only if the `test` job is successful on a push to `main`.
+    *   Builds and pushes the `azubi-backend-php` and `azubi-backend-nginx` Docker images to Docker Hub.
+
+#### Frontend (`frontend.yml`)
+
+1.  **Quality Checks Job:**
+    *   Sets up the Node.js environment.
+    *   Installs NPM dependencies using the lockfile (`npm ci`).
+    *   Runs the ESLint linter (`npm run lint`).
+    *   Runs the Jest test suite (`npm test`).
+    *   Performs a security audit on dependencies (`npm audit`).
+2.  **Build & Push Job:**
+    *   This job runs only if the `quality-checks` job is successful on a push to `main`.
+    *   Builds and pushes the `azubi-frontend` Docker image to Docker Hub.
 
 ## License
 Proprietary – internal use.
-
-# Debug
-- Automated Migration/Seeding
-- Separate build pipeline
->>>>>>> 457d4ed8 (feat: separated the pipeline.)
