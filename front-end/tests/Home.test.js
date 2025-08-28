@@ -6,7 +6,7 @@ describe('Index Page', () => {
     render(<Index />)
 
     const heading = screen.getByText(
-      /Albert/i
+      /^Albert$/i
     )
 
     expect(heading).toBeInTheDocument()
