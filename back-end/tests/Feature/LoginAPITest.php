@@ -17,7 +17,8 @@ class LoginAPITest extends TestCase
         User::factory()->create(['username' => "abanda"]);
 
         $data = [
-            'username' => "abanda"
+            'username' => "abanda",
+            'password' => 'password'
         ];
 
 
@@ -77,7 +78,7 @@ class LoginAPITest extends TestCase
 
         $data = [
             'password' => "12344321",
-            'password_confirmation' => "123444321",
+            'password_confirmation' => "12344321",
         ];
 
         Sanctum::actingAs($user);

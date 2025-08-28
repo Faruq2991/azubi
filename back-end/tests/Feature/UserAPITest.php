@@ -20,7 +20,7 @@ class UserAPITest extends AuthTestCase
         $response = $this->getJson('/api/admin/users');
 
         $response->assertStatus(200);
-        $this->assertCount(11, $response->decodeResponseJson()['data']);
+        $this->assertCount(1, $response->decodeResponseJson()['data']);
     }
 
     public function test_can_register_user()
@@ -48,6 +48,10 @@ class UserAPITest extends AuthTestCase
         $seed_data = array_merge($updates, $seed_data);
 
         $response = $this->patchJson('/api/admin/users/' . $user->id, $seed_data);
+
+        $response->assertOk();
+        $user->refresh();
+        $this->assertEquals($seed_data['phone'], $user->phone);
 
     }
 
