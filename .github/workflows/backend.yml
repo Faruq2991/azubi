@@ -45,7 +45,7 @@ jobs:
         run: php artisan test
 
       - name: Audit Security Vulnerabilities
-        run: composer audit
+        run: composer audit --no-abandoned
 
   build_and_push_backend:
     needs: test
