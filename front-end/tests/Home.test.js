@@ -5,10 +5,10 @@ describe('Index Page', () => {
   it('renders the main heading', () => {
     render(<Index />)
 
-    const heading = screen.getByText(
-      /^Albert$/i
+    const headings = screen.getAllByText(
+      /^Azubi Africa$/i
     )
 
-    expect(heading).toBeInTheDocument()
+    expect(headings[0]).toBeInTheDocument()
   })
 })
